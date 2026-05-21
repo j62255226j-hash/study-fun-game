@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎲 Study Fun 5 · Units 5–8 Board Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #FF6B35;
+  --yellow: #FFD93D;
+  --purple: #9B5DE5;
+  --green:  #52B788;
+  --red:    #EF476F;
+  --blue:   #118AB2;
+  --cream:  #FFF9F0;
+  --text:   #1A1A2E;
+  --shadow: 0 6px 30px rgba(0,0,0,0.13);
+  --p0: #FF6B35;
+  --p1: #118AB2;
+  --p2: #52B788;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+/* ── SETUP ── */
+#setup-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:2rem;
+  background:linear-gradient(145deg,#fff8e1 0%,#e0f7fa 100%);
+}
+.title-badge{
+  background:var(--orange);color:white;font-family:'Fredoka One',cursive;
+  font-size:.85rem;padding:.3rem 1rem;border-radius:20px;letter-spacing:1px;margin-bottom:.6rem;
+}
+.game-title{
+  font-family:'Fredoka One',cursive;font-size:clamp(2rem,6vw,3.2rem);
+  color:var(--text);line-height:1.1;text-align:center;margin-bottom:.3rem;
+}
+.game-title span{color:var(--orange);}
+.game-sub{font-size:.95rem;color:#888;margin-bottom:2rem;text-align:center;}
+.setup-card{
+  background:white;border-radius:24px;padding:2rem 2.5rem;
+  width:100%;max-width:440px;box-shadow:var(--shadow);
+}
+.setup-card h2{
+  font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--purple);
+  margin-bottom:1.2rem;text-align:center;
+}
+.p-input{margin-bottom:.85rem;}
+.p-input label{
+  display:flex;align-items:center;gap:.4rem;
+  font-weight:800;font-size:.88rem;margin-bottom:.35rem;
+}
+.p-input input{
+  width:100%;padding:.6rem 1rem;border:2px solid #e8e8e8;border-radius:12px;
+  font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;transition:border-color .2s;
+}
+.p-input input:focus{outline:none;border-color:var(--orange);}
+.rules-box{
+  background:#FFF3E0;border-radius:12px;padding:.85rem 1rem;margin:1.2rem 0;
+  font-size:.82rem;line-height:2;color:#5D4037;
+}
+.rules-box strong{color:var(--orange);}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+  padding:.8rem 1.8rem;border:none;border-radius:50px;
+  font-family:'Fredoka One',cursive;font-size:1.05rem;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;letter-spacing:.3px;
+}
+.btn:hover{transform:translateY(-2px);}
+.btn:active{transform:translateY(0);}
+.btn-full{width:100%;}
+.btn-orange{background:var(--orange);color:white;box-shadow:0 4px 14px rgba(255,107,53,.35);}
+.btn-green {background:var(--green); color:white;box-shadow:0 4px 14px rgba(82,183,136,.35);}
+.btn-red   {background:var(--red);   color:white;box-shadow:0 4px 14px rgba(239,71,111,.35);}
+.btn-blue  {background:var(--blue);  color:white;box-shadow:0 4px 14px rgba(17,138,178,.35);}
+
+/* ── GAME LAYOUT ── */
+#game-screen{display:none;max-width:1200px;margin:0 auto;padding:1rem;gap:1.25rem;}
+#game-screen.active{display:grid;grid-template-columns:1fr 310px;align-items:start;}
+
+/* ── BOARD ── */
+#board-wrap{position:sticky;top:1rem;}
+#board{
+  display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(6,1fr);
+  width:100%;aspect-ratio:1;border:4px solid #222;border-radius:18px;
+  overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.18);background:#fff;
+}
+.space{
+  position:relative;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:3px 2px;
+  border:1px solid rgba(0,0,0,0.08);overflow:hidden;min-width:0;min-height:0;
+}
+.space-num{position:absolute;top:2px;left:4px;font-size:.46rem;font-weight:900;color:rgba(0,0,0,.25);}
+.space-icon{font-size:clamp(.85rem,2vw,1.25rem);line-height:1;}
+.space-lbl {font-size:clamp(.4rem,.85vw,.56rem);font-weight:800;text-align:center;line-height:1.25;margin-top:1px;}
+.space-tkns{font-size:clamp(.65rem,1.4vw,.95rem);min-height:1em;display:flex;gap:1px;flex-wrap:wrap;justify-content:center;}
+.sp-start   {background:#E8F5E9;}
+.sp-question{background:#FFFDE7;}
+.sp-lucky   {background:#E8F5E9;}
+.sp-oops    {background:#FFEBEE;}
+.sp-skip    {background:#FFF3E0;}
+.sp-corner  {background:#F3E5F5;}
+.sp-star    {background:#FCE4EC;}
+.space.hl   {box-shadow:inset 0 0 0 3px var(--orange);z-index:2;}
+
+/* board centre */
+.board-center{
+  grid-column:2/6;grid-row:2/6;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  padding:.75rem;text-align:center;
+}
+.bc-title{font-family:'Fredoka One',cursive;color:var(--yellow);font-size:clamp(.75rem,1.8vw,1.25rem);line-height:1.3;margin-bottom:.5rem;}
+.bc-sub  {color:rgba(255,255,255,.7);font-size:clamp(.4rem,.8vw,.62rem);line-height:2;font-weight:700;}
+.bc-icon {font-size:clamp(1rem,2.5vw,1.8rem);margin-bottom:.3rem;}
+
+/* ── PANEL ── */
+#game-panel{display:flex;flex-direction:column;gap:.9rem;}
+
+.pcard{
+  background:white;border-radius:16px;padding:.85rem 1rem;
+  box-shadow:var(--shadow);border:2.5px solid transparent;
+  transition:border-color .25s,transform .2s;
+}
+.pcard.active-turn{transform:scale(1.02);}
+.pcard-top{display:flex;align-items:center;gap:.45rem;margin-bottom:.5rem;}
+.pcard-token{font-size:1.5rem;}
+.pcard-name{font-family:'Fredoka One',cursive;font-size:.95rem;flex:1;}
+.skip-badge{
+  font-size:.65rem;background:#FFF3E0;color:var(--orange);
+  padding:.18rem .45rem;border-radius:20px;font-weight:800;display:none;
+}
+.skip-badge.on{display:inline-block;}
+.pcard-stats{display:flex;gap:.4rem;flex-wrap:wrap;}
+.stat{
+  background:var(--cream);border-radius:20px;padding:.22rem .55rem;
+  font-size:.72rem;font-weight:800;display:flex;align-items:center;gap:.15rem;
+}
+.stat .val{color:var(--orange);}
+
+/* Dice box */
+.dice-box{background:white;border-radius:16px;padding:1.1rem;box-shadow:var(--shadow);text-align:center;}
+.turn-label{font-size:.8rem;color:#888;margin-bottom:.4rem;}
+.turn-label strong{color:var(--orange);font-size:.92rem;}
+#dice-el{
+  font-size:3.5rem;margin:.2rem 0;min-height:3.8rem;
+  display:flex;align-items:center;justify-content:center;
+}
+#dice-el.spin{animation:diceAnim .55s ease;}
+@keyframes diceAnim{
+  0%,100%{transform:rotate(0) scale(1);}
+  30%{transform:rotate(-25deg) scale(1.3);}
+  70%{transform:rotate(20deg) scale(1.25);}
+}
+
+/* Log */
+.log-box{background:white;border-radius:16px;padding:.85rem 1rem;box-shadow:var(--shadow);}
+.log-box h3{font-family:'Fredoka One',cursive;font-size:.82rem;color:#aaa;margin-bottom:.4rem;}
+#log-list{max-height:130px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+.log-item{font-size:.73rem;padding:.25rem 0;border-bottom:1px solid #f5f5f5;color:#555;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-5px);}to{opacity:1;}}
+
+/* ── OVERLAYS ── */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.62);z-index:500;
+  align-items:center;justify-content:center;padding:1rem;
+}
+.overlay.open{display:flex;}
+.modal{
+  background:white;border-radius:26px;
+  max-width:520px;width:100%;
+  box-shadow:0 24px 70px rgba(0,0,0,.3);
+  animation:popIn .28s cubic-bezier(.34,1.56,.64,1);
+  overflow:hidden;
+}
+@keyframes popIn{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* ── QUESTION MODAL ── */
+.q-header{
+  padding:1.3rem 1.8rem 1rem;text-align:center;
+  border-bottom:2px solid #f5f5f5;
+}
+.who-tag{
+  display:inline-flex;align-items:center;gap:.4rem;
+  font-family:'Fredoka One',cursive;font-size:.88rem;
+  padding:.3rem 1rem;border-radius:20px;color:white;margin-bottom:.7rem;
+}
+.q-header h2{
+  font-family:'Fredoka One',cursive;font-size:1.35rem;color:var(--orange);
+}
+.q-body{padding:1.3rem 1.8rem 1.6rem;}
+
+/* Big question */
+.q-text{
+  background:#FFFDE7;border-radius:14px;border-left:5px solid var(--yellow);
+  padding:1.1rem 1.3rem;margin-bottom:.7rem;
+  font-size:1.25rem;font-weight:800;text-align:center;line-height:1.5;
+}
+.q-hint{
+  font-size:.8rem;color:#bbb;font-style:italic;text-align:center;margin-bottom:1.3rem;
+}
+
+/* Reveal button */
+.reveal-btn{
+  width:100%;margin-bottom:1rem;border-radius:14px;padding:.72rem;
+  font-size:.95rem;
+}
+
+/* Model answer */
+.ans-box{
+  display:none;background:#E8F5E9;border-radius:14px;border-left:5px solid var(--green);
+  padding:1rem 1.2rem;margin-bottom:1.2rem;
+}
+.ans-box.show{display:block;}
+.ans-lbl{font-size:.7rem;font-weight:900;color:#2E7D32;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.35rem;}
+.ans-txt{font-weight:800;color:#1B5E20;font-size:.98rem;line-height:1.65;}
+
+/* Teacher score buttons */
+.score-row{display:flex;gap:.85rem;}
+.score-row .btn{flex:1;font-size:1rem;padding:.9rem .5rem;border-radius:16px;}
+
+/* ── EVENT MODAL ── */
+.event-inner{padding:2rem 2rem 1.75rem;text-align:center;}
+.event-big  {font-size:5rem;display:block;margin-bottom:.3rem;}
+.event-title{font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--text);margin-bottom:.5rem;}
+.event-desc {color:#666;font-size:1rem;margin-bottom:1.5rem;line-height:1.55;}
+
+/* ── GAME OVER ── */
+#gameover-screen{
+  display:none;flex-direction:column;align-items:center;
+  justify-content:center;min-height:100vh;padding:2rem;text-align:center;
+  background:linear-gradient(145deg,#fff8e1 0%,#e0f7fa 100%);
+}
+#gameover-screen.active{display:flex;}
+.go-trophy{font-size:6rem;display:block;margin-bottom:.5rem;animation:bounce .8s ease infinite alternate;}
+@keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-12px);}}
+.go-title{font-family:'Fredoka One',cursive;font-size:2.5rem;color:var(--orange);margin-bottom:.3rem;}
+.go-sub  {font-size:1.05rem;color:#666;margin-bottom:1.5rem;}
+.score-cards{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-bottom:2rem;}
+.sc{background:white;border-radius:20px;padding:1.4rem 1.8rem;min-width:120px;box-shadow:var(--shadow);text-align:center;}
+.sc.winner{background:linear-gradient(135deg,var(--yellow),var(--orange));color:white;}
+.sc-token{font-size:2.2rem;}
+.sc-name {font-family:'Fredoka One',cursive;font-size:.95rem;margin:.3rem 0;}
+.sc-score{font-family:'Fredoka One',cursive;font-size:2.4rem;}
+.sc-label{font-size:.72rem;opacity:.75;}
+
+@media(max-width:720px){
+  #game-screen.active{grid-template-columns:1fr;}
+  #board-wrap{position:static;max-width:420px;margin:0 auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ SETUP ══════════ -->
+<div id="setup-screen">
+  <div class="title-badge">📚 Study Fun 5 · Units 5–8</div>
+  <h1 class="game-title">English <span>Board Game</span> 🎲</h1>
+  <p class="game-sub">3 Players · Teacher scores · No typing needed!</p>
+
+  <div class="setup-card">
+    <h2>👥 Enter Player Names</h2>
+
+    <div class="p-input">
+      <label style="color:var(--p0)">🐶 Player 1</label>
+      <input id="p0n" type="text" value="Player 1" maxlength="16">
+    </div>
+    <div class="p-input">
+      <label style="color:var(--p1)">🐱 Player 2</label>
+      <input id="p1n" type="text" value="Player 2" maxlength="16">
+    </div>
+    <div class="p-input">
+      <label style="color:var(--p2)">🐸 Player 3</label>
+      <input id="p2n" type="text" value="Player 3" maxlength="16">
+    </div>
+
+    <div class="rules-box">
+      <strong>🎯 How to Play:</strong><br>
+      1. 🎲 Roll the dice &amp; move your token<br>
+      2. ❓ Land on a question → answer <strong>out loud</strong><br>
+      3. 👩‍🏫 Teacher clicks <strong>✓ Correct</strong> or <strong>✗ Wrong</strong><br>
+      4. ✓ Correct = <strong>+10 pts</strong> &nbsp;|&nbsp; Complete a lap = <strong>+5 pts</strong><br>
+      5. 🏆 Most points after <strong>3 laps</strong> wins!
+    </div>
+
+    <button class="btn btn-orange btn-full" onclick="startGame()">🎮 Start Game!</button>
+  </div>
+</div>
+
+<!-- ══════════ GAME SCREEN ══════════ -->
+<div id="game-screen">
+
+  <div id="board-wrap">
+    <div id="board">
+      <div class="board-center">
+        <div class="bc-icon">🌟</div>
+        <div class="bc-title">Study Fun 5<br>Units 5–8</div>
+        <div class="bc-sub">
+          ❓ Answer a question<br>
+          🍀 Lucky! Move ahead<br>
+          ⚡ Oops! Move back<br>
+          ⏸ Skip your next turn<br>
+          🌟 Star = bonus points!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-panel">
+    <div id="player-cards"></div>
+
+    <div class="dice-box">
+      <div class="turn-label">🎯 It's <strong id="turn-name">–</strong>'s turn!</div>
+      <div id="dice-el">🎲</div>
+      <button class="btn btn-orange btn-full" id="roll-btn" onclick="rollDice()">🎲 Roll Dice!</button>
+    </div>
+
+    <div class="log-box">
+      <h3>📋 Game Log</h3>
+      <div id="log-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ QUESTION MODAL ══════════ -->
+<div class="overlay" id="q-overlay">
+  <div class="modal">
+    <div class="q-header">
+      <div class="who-tag" id="q-who-tag">🐶 Player 1</div>
+      <h2>❓ Answer the Question!</h2>
+    </div>
+    <div class="q-body">
+
+      <div class="q-text" id="q-text">Question</div>
+      <div class="q-hint" id="q-hint">Hint</div>
+
+      <!-- Teacher reveals answer when ready -->
+      <button class="btn btn-blue btn-full reveal-btn" id="reveal-btn" onclick="revealAnswer()">
+        👁 Reveal Model Answer
+      </button>
+
+      <div class="ans-box" id="ans-box">
+        <div class="ans-lbl">✅ Suggested Answer:</div>
+        <div class="ans-txt" id="ans-txt"></div>
+      </div>
+
+      <!-- Teacher clicks one of these -->
+      <div class="score-row">
+        <button class="btn btn-green" onclick="teacherScore(true)">
+          ✓ Correct!<br><small style="font-size:.75rem;opacity:.85;">+10 pts</small>
+        </button>
+        <button class="btn btn-red" onclick="teacherScore(false)">
+          ✗ Wrong /<br><small style="font-size:.75rem;opacity:.85;">Skip</small>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EVENT MODAL ══════════ -->
+<div class="overlay" id="ev-overlay">
+  <div class="modal">
+    <div class="event-inner">
+      <span class="event-big"  id="ev-icon"></span>
+      <div class="event-title" id="ev-title"></div>
+      <div class="event-desc"  id="ev-desc"></div>
+      <button class="btn btn-orange" onclick="closeEvent()">OK, let's go! 👍</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ GAME OVER ══════════ -->
+<div id="gameover-screen">
+  <span class="go-trophy" id="go-trophy">🏆</span>
+  <div class="go-title">Game Over!</div>
+  <div class="go-sub"  id="go-sub"></div>
+  <div class="score-cards" id="go-cards"></div>
+  <button class="btn btn-orange" style="font-size:1.1rem;padding:1rem 2.5rem;" onclick="restartGame()">
+    🔄 Play Again!
+  </button>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════
+const TOTAL    = 20;
+const MAX_LAPS = 3;
+const DICE_FACE = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+const TOKENS    = ['🐶','🐱','🐸'];
+const P_COLORS  = ['#FF6B35','#118AB2','#52B788'];
+
+const POS = [
+  [6,1],[6,2],[6,3],[6,4],[6,5],[6,6],
+  [5,6],[4,6],[3,6],[2,6],
+  [1,6],[1,5],[1,4],[1,3],[1,2],[1,1],
+  [2,1],[3,1],[4,1],[5,1],
+];
+
+const SPACES = [
+  {type:'start',   icon:'🏁',lbl:'START',     cls:'sp-start'           },
+  {type:'question',icon:'❓',lbl:'Question',  cls:'sp-question'         },
+  {type:'lucky',   icon:'🍀',lbl:'Lucky! +2', cls:'sp-lucky',  val: 2  },
+  {type:'question',icon:'❓',lbl:'Question',  cls:'sp-question'         },
+  {type:'oops',    icon:'⚡',lbl:'Oops! −1',  cls:'sp-oops',   val:-1  },
+  {type:'corner',  icon:'☕',lbl:'Rest',       cls:'sp-corner'          },
+  {type:'question',icon:'❓',lbl:'Question',  cls:'sp-question'         },
+  {type:'lucky',   icon:'🍀',lbl:'Lucky! +3', cls:'sp-lucky',  val: 3  },
+  {type:'question',icon:'❓',lbl:'Question',  cls:'sp-question'         },
+  {type:'skip',    icon:'⏸',lbl:'Skip Turn', cls:'sp-skip'             },
+  {type:'corner',  icon:'🎯',lbl:'Bonus! +3', cls:'sp-corner', val: 3  },
+  {type:'question',icon:'❓',lbl:'Question',  cls:'sp-question'         },
+  {type:'lucky',   icon:'🍀',lbl:'Lucky! +2', cls:'sp-lucky',  val: 2  },
+  {type:'question',icon:'❓',lbl:'Question',  cls:'sp-question'         },
+  {type:'oops',    icon:'⚡',lbl:'Oops! −2',  cls:'sp-oops',   val:-2  },
+  {type:'star',    icon:'🌟',lbl:'Star! +5',  cls:'sp-star',   val: 5  },
+  {type:'question',icon:'❓',lbl:'Question',  cls:'sp-question'         },
+  {type:'skip',    icon:'⏸',lbl:'Skip Turn', cls:'sp-skip'             },
+  {type:'question',icon:'❓',lbl:'Question',  cls:'sp-question'         },
+  {type:'lucky',   icon:'🍀',lbl:'Lucky! +2', cls:'sp-lucky',  val: 2  },
+];
+
+const QUESTIONS = [
+  {
+    q:   'How often do you mop the floor?',
+    hint:'💡 I mop the floor ___ a week / every day.',
+    ans: 'I mop the floor twice a week.'
+  },
+  {
+    q:   'How often does Peter sweep the floor?',
+    hint:'💡 He sweeps the floor ___ .',
+    ans: 'He sweeps the floor every day.'
+  },
+  {
+    q:   'Does she have to vacuum the carpet once a month?',
+    hint:'💡 Yes, she does. She has to …',
+    ans: 'Yes, she does. She has to vacuum the carpet once a month.'
+  },
+  {
+    q:   'How many days are there in May?',
+    hint:'💡 There are ___ days in May.',
+    ans: 'There are thirty-one days in May.'
+  },
+  {
+    q:   'Which month comes after March?',
+    hint:'💡 ___ comes after March.',
+    ans: 'April comes after March.'
+  },
+  {
+    q:   'When is your birthday?',
+    hint:"💡 It's on [Month] [Date]th.  e.g. It's on June 7th.",
+    ans: "It's on [month + date].  e.g. It's on June 7th."
+  },
+  {
+    q:   'What does he do with his father in their free time?',
+    hint:'💡 He likes to ___ with his father in his free time.',
+    ans: 'He likes to do exercise with his father in his free time.'
+  },
+  {
+    q:   'Do you read newspapers in your free time?',
+    hint:"💡 Yes, I usually do.  /  No, I usually don't. I like to ___.",
+    ans: "Yes, I usually do. I read newspapers in my free time.\nOR  No, I usually don't. I don't like to read newspapers."
+  },
+  {
+    q:   'How do you feel? (Imagine you feel dizzy!)',
+    hint:'💡 I feel ___. I should ___.',
+    ans: 'I feel dizzy. I should get some rest.'
+  },
+  {
+    q:   'How does he feel? (Imagine he feels sick!)',
+    hint:"💡 He feels ___. He shouldn't ___.",
+    ans: "He feels sick. He shouldn't drink cold water."
+  },
+];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let G = {};
+
+function shuffle(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+
+// ══════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════
+function startGame(){
+  const names=[
+    document.getElementById('p0n').value.trim()||'Player 1',
+    document.getElementById('p1n').value.trim()||'Player 2',
+    document.getElementById('p2n').value.trim()||'Player 3',
+  ];
+  G={
+    players: names.map((n,i)=>({name:n,token:TOKENS[i],color:P_COLORS[i],pos:0,score:0,laps:0,skip:false})),
+    cur:0, qdeck:shuffle(QUESTIONS), qi:0,
+    answering:-1, currentQ:null, rolling:false, over:false, evCb:null,
+  };
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('gameover-screen').classList.remove('active');
+  const gs=document.getElementById('game-screen');
+  gs.style.display=''; gs.classList.add('active');
+  buildPlayerCards();
+  buildBoard();
+  updateUI();
+  log('🎮 Game started! Good luck, '+names.join(', ')+'!');
+}
+
+// ══════════════════════════════════════════
+//  PLAYER CARDS
+// ══════════════════════════════════════════
+function buildPlayerCards(){
+  const w=document.getElementById('player-cards');
+  w.innerHTML=G.players.map((p,i)=>`
+    <div class="pcard" id="c${i}" style="margin-bottom:.85rem;">
+      <div class="pcard-top">
+        <div class="pcard-token">${p.token}</div>
+        <div class="pcard-name" style="color:${p.color}">${p.name}</div>
+        <div class="skip-badge" id="skip${i}">⏸ Skip!</div>
+      </div>
+      <div class="pcard-stats">
+        <div class="stat">⭐ <span class="val" id="score${i}">0</span> pts</div>
+        <div class="stat">📍 Space <span class="val" id="pos${i}">0</span></div>
+        <div class="stat">🔄 Lap <span class="val" id="laps${i}">0</span>/3</div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  BOARD
+// ══════════════════════════════════════════
+function buildBoard(){
+  const board=document.getElementById('board');
+  board.querySelectorAll('.space').forEach(e=>e.remove());
+  SPACES.forEach((sp,i)=>{
+    const d=document.createElement('div');
+    d.className='space '+sp.cls; d.id='sp'+i;
+    d.style.gridRow=POS[i][0]; d.style.gridColumn=POS[i][1];
+    d.innerHTML=`<div class="space-num">${i}</div><div class="space-icon">${sp.icon}</div><div class="space-lbl">${sp.lbl}</div><div class="space-tkns" id="tk${i}"></div>`;
+    board.appendChild(d);
+  });
+  placeTokens();
+}
+
+function placeTokens(){
+  for(let i=0;i<TOTAL;i++){ const e=document.getElementById('tk'+i); if(e) e.textContent=''; }
+  G.players.forEach(p=>{ const e=document.getElementById('tk'+p.pos); if(e) e.textContent+=p.token; });
+  document.querySelectorAll('.space.hl').forEach(e=>e.classList.remove('hl'));
+  const sp=document.getElementById('sp'+G.players[G.cur].pos);
+  if(sp) sp.classList.add('hl');
+}
+
+// ══════════════════════════════════════════
+//  UI UPDATE
+// ══════════════════════════════════════════
+function updateUI(){
+  G.players.forEach((p,i)=>{
+    const card=document.getElementById('c'+i); if(!card) return;
+    const el_s=document.getElementById('score'+i);
+    const el_p=document.getElementById('pos'+i);
+    const el_l=document.getElementById('laps'+i);
+    const el_sk=document.getElementById('skip'+i);
+    if(el_s) el_s.textContent=p.score;
+    if(el_p) el_p.textContent=p.pos;
+    if(el_l) el_l.textContent=p.laps;
+    if(el_sk) el_sk.classList.toggle('on',p.skip);
+    card.classList.toggle('active-turn',i===G.cur);
+    card.style.borderColor=i===G.cur?p.color:'transparent';
+  });
+  const cp=G.players[G.cur];
+  document.getElementById('turn-name').textContent=cp.token+' '+cp.name;
+  document.getElementById('roll-btn').disabled=G.rolling||G.over;
+  placeTokens();
+}
+
+function log(msg){
+  const list=document.getElementById('log-list');
+  const d=document.createElement('div'); d.className='log-item'; d.innerHTML=msg;
+  list.insertBefore(d,list.firstChild);
+  while(list.children.length>30) list.removeChild(list.lastChild);
+}
+
+// ══════════════════════════════════════════
+//  DICE
+// ══════════════════════════════════════════
+function rollDice(){
+  if(G.rolling||G.over) return;
+  const cp=G.players[G.cur];
+  if(cp.skip){
+    cp.skip=false;
+    log('⏸ '+cp.token+' '+cp.name+' skips this turn!');
+    updateUI(); nextTurn(); return;
+  }
+  G.rolling=true;
+  document.getElementById('roll-btn').disabled=true;
+  const el=document.getElementById('dice-el');
+  el.classList.add('spin');
+  let t=0;
+  const iv=setInterval(()=>{
+    el.textContent=DICE_FACE[Math.floor(Math.random()*6)]; t++;
+    if(t>=12){
+      clearInterval(iv); el.classList.remove('spin');
+      const n=Math.floor(Math.random()*6)+1;
+      el.textContent=DICE_FACE[n-1];
+      log('🎲 '+cp.token+' '+cp.name+' rolled a <strong>'+n+'</strong>!');
+      setTimeout(()=>movePlayer(G.cur,n),180);
+    }
+  },55);
+}
+
+// ══════════════════════════════════════════
+//  MOVE
+// ══════════════════════════════════════════
+function movePlayer(pi,steps){
+  const p=G.players[pi];
+  const raw=p.pos+steps; const newPos=raw%TOTAL;
+  if(raw>=TOTAL){
+    p.laps++; p.score+=5;
+    log('🔄 '+p.token+' '+p.name+' completed lap '+p.laps+'! <strong>+5 bonus pts!</strong>');
+    updateUI();
+    if(p.laps>=MAX_LAPS){ p.pos=newPos; updateUI(); setTimeout(endGame,350); return; }
+  }
+  p.pos=((newPos%TOTAL)+TOTAL)%TOTAL;
+  updateUI(); setTimeout(()=>handleSpace(pi),370);
+}
+
+// ══════════════════════════════════════════
+//  HANDLE SPACE
+// ══════════════════════════════════════════
+function handleSpace(pi){
+  const p=G.players[pi]; const sp=SPACES[p.pos];
+  log('📍 '+p.token+' '+p.name+' → <strong>'+sp.lbl+'</strong> (space '+p.pos+')');
+  switch(sp.type){
+    case 'start':
+      showEvent('🏁','Back to START!',p.name+' gets <strong>3 bonus points</strong>!',
+        ()=>{ p.score+=3; updateUI(); endTurn(); }); break;
+    case 'question':
+      openQuestion(pi); break;
+    case 'lucky':
+      showEvent('🍀','Lucky Space!','🎉 '+p.name+' moves forward <strong>'+sp.val+'</strong> more spaces!',
+        ()=>movePlayer(pi,sp.val)); break;
+    case 'oops':
+      showEvent('⚡','Oops!','😬 '+p.name+' moves back <strong>'+Math.abs(sp.val)+'</strong> space(s)!',
+        ()=>{ p.pos=((p.pos+sp.val)%TOTAL+TOTAL)%TOTAL; updateUI(); endTurn(); }); break;
+    case 'skip':
+      showEvent('⏸','Skip Turn!',p.name+' will skip their <strong>next</strong> turn. Keep studying! 📖',
+        ()=>{ p.skip=true; updateUI(); endTurn(); }); break;
+    case 'corner':
+      if(sp.val){
+        showEvent('🎯','Bonus Corner!','🎉 '+p.name+' earns <strong>'+sp.val+'</strong> bonus points!',
+          ()=>{ p.score+=sp.val; updateUI(); endTurn(); });
+      } else {
+        showEvent('☕','Rest Stop!',p.name+' takes a quick rest. Carry on!',endTurn);
+      } break;
+    case 'star':
+      showEvent('🌟','STAR Space!','⭐ WOW! '+p.name+' earns <strong>'+sp.val+'</strong> bonus points!',
+        ()=>{ p.score+=sp.val; updateUI(); endTurn(); }); break;
+    default: endTurn();
+  }
+}
+
+// ══════════════════════════════════════════
+//  QUESTION
+// ══════════════════════════════════════════
+function getQuestion(){
+  if(G.qi>=G.qdeck.length){ G.qdeck=shuffle(QUESTIONS); G.qi=0; log('🔀 All 10 questions used — reshuffled the deck!'); }
+  return G.qdeck[G.qi++];
+}
+
+function openQuestion(pi){
+  G.answering=pi; const q=getQuestion(); G.currentQ=q;
+  const p=G.players[pi];
+  const tag=document.getElementById('q-who-tag');
+  tag.textContent=p.token+' '+p.name+"'s Question";
+  tag.style.background=p.color;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('q-hint').textContent=q.hint;
+  document.getElementById('ans-txt').innerHTML=q.ans.replace(/\n/g,'<br>');
+  document.getElementById('ans-box').classList.remove('show');
+  document.getElementById('reveal-btn').style.display='block';
+  document.getElementById('q-overlay').classList.add('open');
+}
+
+function revealAnswer(){
+  document.getElementById('ans-box').classList.add('show');
+  document.getElementById('reveal-btn').style.display='none';
+}
+
+function teacherScore(correct){
+  const p=G.players[G.answering];
+  if(correct){
+    p.score+=10;
+    log('✅ '+p.token+' '+p.name+' — CORRECT! <strong>+10 points!</strong>');
+    updateUI();
+  } else {
+    log('❌ '+p.token+' '+p.name+' — not correct this time. Keep going!');
+  }
+  document.getElementById('q-overlay').classList.remove('open');
+  endTurn();
+}
+
+// ══════════════════════════════════════════
+//  EVENT MODAL
+// ══════════════════════════════════════════
+function showEvent(icon,title,desc,cb){
+  G.evCb=cb;
+  document.getElementById('ev-icon').textContent=icon;
+  document.getElementById('ev-title').textContent=title;
+  document.getElementById('ev-desc').innerHTML=desc;
+  document.getElementById('ev-overlay').classList.add('open');
+}
+function closeEvent(){
+  document.getElementById('ev-overlay').classList.remove('open');
+  if(G.evCb){ const fn=G.evCb; G.evCb=null; fn(); }
+}
+
+// ══════════════════════════════════════════
+//  TURN FLOW
+// ══════════════════════════════════════════
+function endTurn(){ G.rolling=false; document.getElementById('roll-btn').disabled=false; nextTurn(); }
+function nextTurn(){ G.cur=(G.cur+1)%G.players.length; updateUI(); }
+
+// ══════════════════════════════════════════
+//  GAME OVER
+// ══════════════════════════════════════════
+function endGame(){
+  G.over=true; document.getElementById('roll-btn').disabled=true;
+  const maxScore=Math.max(...G.players.map(p=>p.score));
+  const winners=G.players.filter(p=>p.score===maxScore);
+  document.getElementById('game-screen').classList.remove('active');
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('gameover-screen').classList.add('active');
+  if(winners.length===1){
+    const w=winners[0];
+    document.getElementById('go-trophy').textContent='🏆';
+    document.getElementById('go-sub').textContent=w.token+' '+w.name+' wins with '+w.score+' points! 🎉';
+  } else {
+    document.getElementById('go-trophy').textContent='🤝';
+    document.getElementById('go-sub').textContent="It's a tie with "+maxScore+" points! 🎊  "+winners.map(p=>p.token+' '+p.name).join(' & ');
+  }
+  const sorted=[...G.players].sort((a,b)=>b.score-a.score);
+  document.getElementById('go-cards').innerHTML=sorted.map(p=>{
+    const w=winners.length===1&&p.score===maxScore;
+    return `<div class="sc${w?' winner':''}"><div class="sc-token">${p.token}</div><div class="sc-name">${p.name}</div><div class="sc-score">${p.score}</div><div class="sc-label">points</div></div>`;
+  }).join('');
+}
+
+function restartGame(){
+  document.getElementById('gameover-screen').classList.remove('active');
+  document.getElementById('setup-screen').style.display='flex';
+}
+</script>
+</body>
+</html>
